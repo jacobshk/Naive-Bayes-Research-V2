@@ -1,4 +1,5 @@
 import pickle 
+import json
 #stopwordsiso = dedicated list of stop words in multiple languages -- comparable stop words for chinese/english
 from stopwordsiso import stopwords
 #pynlpir = chinese text segmentation package
@@ -66,4 +67,4 @@ with open('Datasets/Chinese datasets/long text/dev.json','r',encoding='utf-8') a
             labelContent[label] += content
 
 file = open('Datasets/Processed Chinese/long-text.pickle','wb')
-pickle.dump(labelContent,file)
+pickle.dump(labelContent,file,-1)
