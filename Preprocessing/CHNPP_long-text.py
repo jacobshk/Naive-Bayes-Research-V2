@@ -67,4 +67,4 @@ with open('Datasets/Chinese datasets/long text/dev.json','r',encoding='utf-8') a
             labelContent[label] += content
 
 file = open('Datasets/Processed Chinese/long-text.pickle','wb')
-pickle.dump(labelContent,file,-1)
+pickle.dump(labelContent,file)
