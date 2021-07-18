@@ -1,28 +1,34 @@
 import pickle
-import os 
+import csv
+import sys
 
-# for folders in os.walk(r'D:/Naive-Bayes-Research-v2/Datasets/English datasets/20_newsgroup/20_newsgroup'):
-#     for subdirectory in folders[1]:
-#         for file in subdirectory:
-#             print(folders)
-# currDict = {tag : headCont}
-#             if tag not in (tagCont.keys()):
-#                 tagCont |=currDict
-#             else:
-#                 tagCont[tag] += headCont
+maxInt = sys.maxsize
+while True:
+    # decrease the maxInt value by factor 10 
+    # as long as the OverflowError occurs.
 
-folderFile = {}
-#this approach is at least a little inefficient but for this use case its functional enough (i.e. the code only needs to be run once for the research, thus no scalability is required)
-for root, dirs, files in os.walk(r'D:/Naive-Bayes-Research-v2/Datasets/English datasets/20_newsgroup/20_newsgroup'):
-    for item in dirs:
-        for subroot, subdirs, subfiles in os.walk(r'D:/Naive-Bayes-Research-v2/Datasets/English datasets/20_newsgroup/20_newsgroup/'+item): #efficiency is overrated 
-            for i in range(len(subfiles)):
-                f = open(r'D:/Naive-Bayes-Research-v2/Datasets/English datasets/20_newsgroup/20_newsgroup/'+item+'/'+subfiles[i])
-                for line in f:
-                    print(f.readline())
-                break
-            break
+    try:
+        csv.field_size_limit(maxInt)
         break
-    break
+    except OverflowError:
+        maxInt = int(maxInt/10)
 
-        
+j=0
+
+tagCont = {}
+
+with open('Datasets/English datasets/20newsgroup_preprocessed.csv',encoding='utf-8') as file:
+    csvReader = csv.reader(file,delimiter=';')
+    for entry in csvReader:
+        if(j>0):
+            content = entry[2]
+            tag = entry[0]
+
+            currDict = {tag : content}
+            if tag not in (tagCont.keys()):
+                tagCont |=currDict
+            else:
+                tagCont[tag] += content
+            
+        j+=1
+pickle.dump(tagCont,open('Datasets/Processed English/20newsgroup.pickle','wb'))
