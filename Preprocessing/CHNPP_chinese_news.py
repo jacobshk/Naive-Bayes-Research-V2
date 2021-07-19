@@ -1,5 +1,5 @@
 import csv
-import pickle 
+import unicodedata 
 from stopwordsiso import stopwords
 #pynlpir = chinese text segmentation package
 import pynlpir
@@ -8,15 +8,18 @@ from flashtext import KeywordProcessor
 
 #dictionary in format "replacement value" = ["values", "to", "be"," replaced"]
 keywordDictionary = {
-    ' ': [".",",","。","，","、","：","；","？","！","「","『","』","」","‧","《","》","〈","〉","﹏﹏﹏ ","……","——"," ——","–","～ ","\"","“","”","】","【","?"]
+    ' ': [".",",","。","，","、","：","；","？","！","「","『","』","」","‧","《","》","〈","〉","﹏﹏﹏ ","……","——"," ——","–","～ ","\"","“","”","】","【","?","(",")",'\\','/','\xa0']
 }
 whitespace = [' ','”','“',".",","]
 puncRemover = KeywordProcessor()
 puncRemover.add_keywords_from_dict(keywordDictionary)
-blacklist = [".","0","1","2","3","4","5","6","7","8","9","0","a","b","c","d","e","f","g","h","i","j","k","l","m","n","o","p","q","r","s","t","u","v","w","x","y","z"]
+blacklist = [".","0","1","2","3","3000","4","5","6","7","8","9","0","a","b","c","d","e","f","g","h","i","j","k","l","m","n","o","p","q","r","s","t","u","v","w","x","y","z","A",'B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V','X','Y','Z']
 pynlpir.open()
 tagCont = {}
 stop = stopwords(["zh"])
+stop.add('【')
+stop.add('】')
+stop.add('\u3000')
 
 z=0
 tagWords = {}
@@ -38,9 +41,9 @@ with open('Datasets/Chinese datasets/chinese_news.csv',encoding='utf-8') as file
             headCont = [i for i in headCont if i not in whitespace]
             #Remove \n artifacts
             headCont = [s.replace('\n', '') for s in headCont]
-
-            
-
+            #get rid of unicode (i..e /xa0)
+            for i in range(len(headCont)):
+                headCont[i] = unicodedata.normalize('NFKC',headCont[i])
             #Remove any english characters or numbers
             elementsToBePopped = []
             for i in range(len(headCont)): #go through all elements of content list
@@ -50,13 +53,13 @@ with open('Datasets/Chinese datasets/chinese_news.csv',encoding='utf-8') as file
                     if(word[j] in blacklist):
                         elementsToBePopped.append(i)
                         blacklisted = True
-                        break
                     if(blacklisted):
                         break         
             j=0
             for i in range(len(elementsToBePopped)):
                 headCont.pop(elementsToBePopped[i]-j)
                 j+=1 #necessary to pop correct index as every pop decreases total list size by 1
+            
             
             #remove stop words
             headCont = [i for i in headCont if i not in stop]           
@@ -67,6 +70,13 @@ with open('Datasets/Chinese datasets/chinese_news.csv',encoding='utf-8') as file
                 tagCont[tag] += headCont
             
         z+=1
-    pickle.dump(tagCont,open('Datasets/Processed Chinese/chinese_news.pickle','wb'))
 
-        
+fieldname = []
+for key in tagCont:
+    fieldname.append(key)
+
+with open('Datasets/Processed Chinese/chinese_news.csv','w',encoding='utf-8') as file:
+    csvWriter = csv.DictWriter(file,fieldnames=fieldname)
+    csvWriter.writeheader()
+    for key in tagCont:
+        csvWriter.writerow({key : tagCont[key]})

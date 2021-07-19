@@ -31,4 +31,12 @@ with open('Datasets/English datasets/20newsgroup_preprocessed.csv',encoding='utf
                 tagCont[tag] += content
             
         j+=1
-pickle.dump(tagCont,open('Datasets/Processed English/20newsgroup.pickle','wb'))
+fieldname = []
+for key in tagCont:
+    fieldname.append(key)
+
+file = open('Datasets/Processed English/20-newsgroup.csv','w',encoding='utf-8')
+csvWriter = csv.DictWriter(file,fieldnames=fieldname)
+csvWriter.writeheader()
+for key in tagCont:
+    csvWriter.writerow({key : tagCont[key]})

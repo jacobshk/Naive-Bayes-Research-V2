@@ -1,5 +1,5 @@
 import json
-import pickle
+import csv
 from stopwordsiso import stopwords
 
 
@@ -34,4 +34,12 @@ with open('Datasets/English datasets/News_Category_Dataset_v2.json','r',encoding
             tagCont |=currDict
         else:
             tagCont[tag] += content
-pickle.dump(tagCont,open('Datasets/Processed English/News-Category-Dataset.pickle','wb'))
+fieldname = []
+for key in tagCont:
+    fieldname.append(key)
+
+file = open('Datasets/Processed English/News-Category.csv','w',encoding='utf-8')
+csvWriter = csv.DictWriter(file,fieldnames=fieldname)
+csvWriter.writeheader()
+for key in tagCont:
+    csvWriter.writerow({key : tagCont[key]})

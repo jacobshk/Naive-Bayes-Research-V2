@@ -46,4 +46,12 @@ with open('Datasets/English datasets/merged_data_file.csv','r',encoding='utf-8')
                 tagCont[tag] += content
             
         z+=1
-pickle.dump(tagCont,open('Datasets/Processed English/merged-data-file.pickle','wb'))
+fieldname = []
+for key in tagCont:
+    fieldname.append(key)
+
+file = open('Datasets/Processed English/merged-data-file.csv','w',encoding='utf-8')
+csvWriter = csv.DictWriter(file,fieldnames=fieldname)
+csvWriter.writeheader()
+for key in tagCont:
+    csvWriter.writerow({key : tagCont[key]})

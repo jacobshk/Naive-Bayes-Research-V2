@@ -1,5 +1,6 @@
+import csv
 import json
-import pickle 
+import unicodedata 
 #stopwordsiso = dedicated list of stop words in multiple languages -- comparable stop words for chinese/english
 from stopwordsiso import stopwords
 #pynlpir = chinese text segmentation package
@@ -9,19 +10,19 @@ from flashtext import KeywordProcessor
 
 #dictionary in format "replacement value" = ["values", "to", "be"," replaced"]
 keywordDictionary = {
-    ' ': [".",",","。","，","、","：","；","？","！","「","『","』","」","‧","《","》","〈","〉","﹏﹏﹏ ","……","——"," ——","–","～ ","\"","“","”","】","【","?"]
+    ' ': [".",",","。","，","、","：","；","？","！","「","『","』","」","‧","《","》","〈","〉","﹏﹏﹏ ","……","——"," ——","–","～ ","\"","“","”","】","【","?",'[',']','┃','●']
 }
 whitespace = [' ','”','“',".",","]
 puncRemover = KeywordProcessor()
 puncRemover.add_keywords_from_dict(keywordDictionary)
-blacklist = [".","0","1","2","3","4","5","6","7","8","9","0","a","b","c","d","e","f","g","h","i","j","k","l","m","n","o","p","q","r","s","t","u","v","w","x","y","z"]
+blacklist = ['[',']','/',".","0","1","2","3","4","5","6","7","8","9","0","a","b","c","d","e","f","g","h","i","j","k","l","m","n","o","p","q","r","s","t","u","v","w","x","y","z",'\x08','\u200b',"A",'B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V','X','Y','Z']
 pynlpir.open()
 
 stop = stopwords(["zh"])
 j=0
 
 
-#Step 1: Compile data from json into dictionary of label:sentence
+#Step 1: Compile data from file into dictionary of label:sentence
 #combine all sentences of same label, such that each key only occurs once
 #because the idea is to measure the occurence of a word relative to a certain label, individual sentences are meaningless
 #(i.e. bag of words model)
@@ -39,6 +40,9 @@ with open('Datasets/Chinese datasets/news/dev.json','r',encoding='utf-8') as fil
         content = pynlpir.segment(content,pos_tagging=False)
             #Remove whitespace artifacts
         content = [i for i in content if i not in whitespace]
+        #get rid of unicode (i..e /xa0)
+        for i in range(len(content)):
+            content[i] = unicodedata.normalize('NFKC',content[i])
         elementsToBePopped = []
 
         #remove all elements containing any english characters or numbers
@@ -59,12 +63,20 @@ with open('Datasets/Chinese datasets/news/dev.json','r',encoding='utf-8') as fil
         
         #remove stop words
         content = [i for i in content if i not in stop]           
+        
         currDict = {label : content}
         if label not in (labelContent.keys()):
             labelContent |=currDict
         else:
             labelContent[label] += content
-        
 
-file = open('Datasets/Processed Chinese/news.pickle','wb')
-pickle.dump(labelContent,file)
+
+fieldname = []
+for key in labelContent:
+    fieldname.append(key)
+
+file = open('Datasets/Processed Chinese/news.csv','w',encoding='utf-8')
+csvWriter = csv.DictWriter(file,fieldnames=fieldname)
+csvWriter.writeheader()
+for key in labelContent:
+    csvWriter.writerow({key : labelContent[key]})
