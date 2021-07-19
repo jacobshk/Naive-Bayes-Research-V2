@@ -2,11 +2,19 @@ import pickle
 import csv
 import sys
 
+#apply named entity recognition to get rid of gibberish and preserve names 
+import spacy
+from spacy import displacy
+from collections import Counter
+from spacy.lang.en.examples import sentences 
+
+nlp = spacy.load("en_core_web_sm")
+
+
 maxInt = sys.maxsize
 while True:
     # decrease the maxInt value by factor 10 
     # as long as the OverflowError occurs.
-
     try:
         csv.field_size_limit(maxInt)
         break
@@ -23,6 +31,10 @@ with open('Datasets/English datasets/20newsgroup_preprocessed.csv',encoding='utf
         if(j>0):
             content = entry[2]
             tag = entry[0]
+            doc = content
+            #remove gibberish
+            for token in doc:
+                token.text
 
             currDict = {tag : content}
             if tag not in (tagCont.keys()):
@@ -31,6 +43,7 @@ with open('Datasets/English datasets/20newsgroup_preprocessed.csv',encoding='utf
                 tagCont[tag] += content
             
         j+=1
+
 fieldname = []
 for key in tagCont:
     fieldname.append(key)

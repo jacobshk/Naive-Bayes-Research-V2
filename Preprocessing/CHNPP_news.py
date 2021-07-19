@@ -44,7 +44,7 @@ with open('Datasets/Chinese datasets/news/dev.json','r',encoding='utf-8') as fil
         for i in range(len(content)):
             content[i] = unicodedata.normalize('NFKC',content[i])
         elementsToBePopped = []
-
+        #NOTE: the more efficient way to do this is to simply create a new list and add words that arent in the blacklist. i am not very efficient.
         #remove all elements containing any english characters or numbers
         for i in range(len(content)): #go through all elements of content list
             blacklisted = False
