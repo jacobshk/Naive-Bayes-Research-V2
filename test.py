@@ -1,6 +1,6 @@
-t = ['this','is','test3']
+import spacy
 
-for i in range(len(t)):
-    for j in range(len(t[i])):
-        if('3' in (t[i])[j]):
-            print(t[i])
+nlp = spacy.load("en_core_web_sm")
+doc = nlp("Apple is looking at buying U.K. startup for $1 billion")
+for token in doc:
+    print(token.text)

@@ -8,7 +8,7 @@ from flashtext import KeywordProcessor
 
 #dictionary in format "replacement value" = ["values", "to", "be"," replaced"]
 keywordDictionary = {
-    ' ': [".",",","。","，","、","：","；","？","！","「","『","』","」","‧","《","》","〈","〉","﹏﹏﹏ ","……","——"," ——","–","～ ","\"","“","”","】","【","?","(",")",'\\','/','\xa0']
+    ' ': [".",",","。","，","、","：","；","？","！","「","『","』","」","‧","《","》","〈","〉","﹏﹏﹏ ","……","——"," ——","–","～ ","\"","“","”","】","【","?","(",")",'\\','/']
 }
 whitespace = [' ','”','“',".",","]
 puncRemover = KeywordProcessor()
@@ -17,9 +17,6 @@ blacklist = [".","0","1","2","3","3000","4","5","6","7","8","9","0","a","b","c",
 pynlpir.open()
 tagCont = {}
 stop = stopwords(["zh"])
-stop.add('【')
-stop.add('】')
-stop.add('\u3000')
 
 z=0
 tagWords = {}
