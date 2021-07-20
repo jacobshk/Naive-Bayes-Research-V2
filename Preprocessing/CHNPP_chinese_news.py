@@ -10,10 +10,9 @@ from flashtext import KeywordProcessor
 keywordDictionary = {
     ' ': [".",",","。","，","、","：","；","？","！","「","『","』","」","‧","《","》","〈","〉","﹏﹏﹏ ","……","——"," ——","–","～ ","\"","“","”","】","【","?","(",")",'\\','/']
 }
-whitespace = [' ','”','“',".",","]
 puncRemover = KeywordProcessor()
 puncRemover.add_keywords_from_dict(keywordDictionary)
-blacklist = [".","0","1","2","3","3000","4","5","6","7","8","9","0","a","b","c","d","e","f","g","h","i","j","k","l","m","n","o","p","q","r","s","t","u","v","w","x","y","z","A",'B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V','X','Y','Z']
+blacklist = ['\n',' ','”','“',".",",",'!','@','#','$','%','^','&','*','`','~',"=",'-','_','+','|','\\','<','>','.','?','(',')','[',']','/',".","0","1","2","3","4","5","6","7","8","9","0","a","b","c","d","e","f","g","h","i","j","k","l","m","n","o","p","q","r","s","t","u","v","w","x","y","z",'\x08','\u200b',"A",'B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V','X','Y','Z']
 pynlpir.open()
 tagCont = {}
 stop = stopwords(["zh"])
@@ -30,50 +29,38 @@ with open('Datasets/Chinese datasets/chinese_news.csv',encoding='utf-8') as file
             
             #Combine headline/content, segment
             headCont = headline + content
+            #Remove punctuation/stop words as each entry is added, rather than going over entire dictionary after its been created
             #Remove punctuation 
-            headCont = puncRemover.replace_keywords(headCont)
+            content = puncRemover.replace_keywords(content)
             #Segment text into individual words 
-            headCont = pynlpir.segment(headCont,pos_tagging=False)
-            #Remove whitespace, 
-            headCont = [i for i in headCont if i not in whitespace]
-            #Remove \n artifacts
-            headCont = [s.replace('\n', '') for s in headCont]
+            content = pynlpir.segment(content,pos_tagging=False)
+
+            cleanContent = []
             #get rid of unicode (i..e /xa0)
-            for i in range(len(headCont)):
-                headCont[i] = unicodedata.normalize('NFKC',headCont[i])
-            #Remove any english characters or numbers
-            elementsToBePopped = []
-            for i in range(len(headCont)): #go through all elements of content list
-                blacklisted = False
-                word = headCont[i]
-                for j in range(len(word) ): #go through all characters of element i 
-                    if(word[j] in blacklist):
-                        elementsToBePopped.append(i)
-                        blacklisted = True
-                    if(blacklisted):
-                        break         
-            j=0
-            for i in range(len(elementsToBePopped)):
-                headCont.pop(elementsToBePopped[i]-j)
-                j+=1 #necessary to pop correct index as every pop decreases total list size by 1
-            
-            
-            #remove stop words
-            headCont = [i for i in headCont if i not in stop]           
-            currDict = {tag : headCont}
+            for word in content:
+                word = unicodedata.normalize('NFKC',word)
+                #remove stop words
+                if word not in stop:                                   
+                    i = len(word)
+                    for letter in word:
+                        if letter in blacklist:
+                            break
+                        #if none of the letters in the word are in the blacklist (i.e. if the for loop doesnt break while parsing through the word), then append entire word to cleanContent
+                        if(letter == word[i-1]):
+                            if not letter == " ":
+                                cleanContent.append(word)
+
+            currDict = {tag : cleanContent}
             if tag not in (tagCont.keys()):
                 tagCont |=currDict
             else:
-                tagCont[tag] += headCont
+                tagCont[tag] += cleanContent
             
         z+=1
 
-fieldname = []
-for key in tagCont:
-    fieldname.append(key)
+fieldname = ["class","words"]
 
-with open('Datasets/Processed Chinese/chinese_news.csv','w',encoding='utf-8') as file:
-    csvWriter = csv.DictWriter(file,fieldnames=fieldname)
-    csvWriter.writeheader()
-    for key in tagCont:
-        csvWriter.writerow({key : tagCont[key]})
+file = open('Datasets/Processed Chinese/chinese_news.csv','w',encoding='utf-8')
+csvWriter = csv.writer(file,delimiter=",")
+for key in tagCont:
+    csvWriter.writerow([key,tagCont[key]])

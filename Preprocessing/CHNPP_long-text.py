@@ -8,14 +8,13 @@ import pynlpir
 #flashtext = module with flashtext algorithm that performs string search/replacement faster than native python string functions
 from flashtext import KeywordProcessor
 
-#dictionary in format "replacement value" = ["values", "to", "be"," replaced"]
+#this dictionary functions as a blacklist for the original string: the other blacklist is necessary as it as used when parsing through each individual string in the created list of strings
 keywordDictionary = {
-    ' ': [".",",","。","，","、","：","；","？","！","「","『","』","」","‧","《","》","〈","〉","﹏﹏﹏ ","……","——"," ——","–","～ ","\"","“","”","】","【","?",'[',']','┃','●']
+    ' ': [".",",","。","，","、","：","；","？","！","「","『","』","」","‧","《","》","〈","〉","﹏﹏﹏ ","……","——"," ——","–","～ ","\"","“","”","】","【","?",'[',']','┃','●''[',']','/',".","0","1","2","3","4","5","6","7","8","9","0","a","b","c","d","e","f","g","h","i","j","k","l","m","n","o","p","q","r","s","t","u","v","w","x","y","z",'\x08','\u200b',"A",'B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V','X','Y','Z']
 }
-whitespace = [' ','”','“',".",","]
 puncRemover = KeywordProcessor()
 puncRemover.add_keywords_from_dict(keywordDictionary)
-blacklist = ['[',']','/',".","0","1","2","3","4","5","6","7","8","9","0","a","b","c","d","e","f","g","h","i","j","k","l","m","n","o","p","q","r","s","t","u","v","w","x","y","z","A",'B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V','X','Y','Z']
+blacklist = [' ','”','“',".",",",'!','@','#','$','%','^','&','*','`','~',"=",'-','_','+','|','\\','<','>','.','?','(',')','[',']','/',".","0","1","2","3","4","5","6","7","8","9","0","a","b","c","d","e","f","g","h","i","j","k","l","m","n","o","p","q","r","s","t","u","v","w","x","y","z",'\x08','\u200b',"A",'B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V','X','Y','Z']
 pynlpir.open()
 
 stop = stopwords(["zh"])
@@ -34,49 +33,35 @@ with open('Datasets/Chinese datasets/long text/dev.json','r',encoding='utf-8') a
         label = currLine.get('label')
         content = currLine.get('sentence')
         #Remove punctuation/stop words as each entry is added, rather than going over entire dictionary after its been created
-            #Remove punctuation 
+        #Remove punctuation 
         content = puncRemover.replace_keywords(content)
-            #Segment text into individual words 
+        #Segment text into individual words 
         content = pynlpir.segment(content,pos_tagging=False)
-            #Remove whitespace artifacts
-        content = [i for i in content if i not in whitespace]
-        #get rid of unicode (i..e /xa0)
-        for i in range(len(content)):
-            content[i] = unicodedata.normalize('NFKC',content[i])
-        elementsToBePopped = []
 
-        #remove all elements containing any english characters or numbers
-        for i in range(len(content)): #go through all elements of content list
-            blacklisted = False
-            word = content[i]
-            for j in range(len(word) ): #go through all characters of element i 
-                if(word[j] in blacklist):
-                    elementsToBePopped.append(i)
-                    blacklisted = True
-                    break
-                if(blacklisted):
-                    break         
-        j=0
-        for i in range(len(elementsToBePopped)):
-            content.pop(elementsToBePopped[i]-j)
-            j+=1 #necessary to pop correct index as every pop decreases total list size by 1
-        
-        #remove stop words
-        content = [i for i in content if i not in stop]           
-        
-        currDict = {label : content}
+        cleanContent = []
+        #get rid of unicode (i..e /xa0)
+        for word in content:
+            word = unicodedata.normalize('NFKC',word)
+            #remove stop words
+            if word not in stop:                                   
+                i = len(word)
+                for letter in word:
+                    if letter in blacklist:
+                        break
+                    #if none of the letters in the word are in the blacklist (i.e. if the for loop doesnt break while parsing through the word), then append entire word to cleanContent
+                    if(letter == word[i-1]):
+                        if not letter == " ":
+                            cleanContent.append(word)
+
+        currDict = {label : cleanContent}
         if label not in (labelContent.keys()):
             labelContent |=currDict
         else:
-            labelContent[label] += content
+            labelContent[label] += cleanContent
 
-
-fieldname = []
-for key in labelContent:
-    fieldname.append(key)
+fieldname = ["class","words"]
 
 file = open('Datasets/Processed Chinese/long-text.csv','w',encoding='utf-8')
-csvWriter = csv.DictWriter(file,fieldnames=fieldname)
-csvWriter.writeheader()
+csvWriter = csv.writer(file,delimiter=",")
 for key in labelContent:
-    csvWriter.writerow({key : labelContent[key]})
+    csvWriter.writerow([key,labelContent[key]])
