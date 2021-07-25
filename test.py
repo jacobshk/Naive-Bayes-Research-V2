@@ -1,6 +1,5 @@
-import spacy
-
-nlp = spacy.load("en_core_web_sm")
-doc = nlp("Apple is looking at buying U.K. startup for $1 billion")
-for token in doc:
-    print(token.text)
+import pickle
+from collections import defaultdict
+with open('Datasets/Processed English/merged-data-fileTEST.pickle','rb') as file:
+    x = pickle.load(file)
+    print(x.keys())
