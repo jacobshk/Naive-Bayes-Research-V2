@@ -2,7 +2,7 @@ import json
 import pandas as pd
 from sklearn.model_selection import train_test_split
 from sklearn.feature_extraction.text import CountVectorizer
-from sklearn.naive_bayes import MultinomialNB
+from sklearn.naive_bayes import BernoulliNB, MultinomialNB
 from stopwordsiso import stopwords
 whitelist = [" ","a","b","c","d","e","f","g","h","i","j","k","l","m","n","o","p","q","r","s","t","u","v","w","x","y","z"]
 stop = stopwords(['en'])
@@ -62,5 +62,5 @@ X = cv.fit_transform(docs)
 
 
 X_train, X_test, y_train, y_test = train_test_split(X,y, test_size=0.25,random_state=24,shuffle=True)
-model = MultinomialNB().fit(X_train,y_train)
+model = BernoulliNB().fit(X_train,y_train)
 print(model.score(X_test,y_test))

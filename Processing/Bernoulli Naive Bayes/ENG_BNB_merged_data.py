@@ -1,8 +1,8 @@
-import json
+import csv
 import pandas as pd
 from sklearn.model_selection import train_test_split
 from sklearn.feature_extraction.text import CountVectorizer
-from sklearn.naive_bayes import MultinomialNB
+from sklearn.naive_bayes import BernoulliNB, MultinomialNB
 from stopwordsiso import stopwords
 whitelist = [" ","a","b","c","d","e","f","g","h","i","j","k","l","m","n","o","p","q","r","s","t","u","v","w","x","y","z"]
 stop = stopwords(['en'])
@@ -35,32 +35,30 @@ def clean_text(content):
     return content
 
 cv = CountVectorizer(lowercase = False)
-with open('Datasets/English datasets/News_Category_Dataset_v2.json','r',encoding='utf-8') as jsonFile:
-    
+with open('Datasets/English datasets/merged_data_file.csv','r',encoding='utf-8') as csvFile:
+    csvReader = csv.reader(csvFile,delimiter=',')
     finalContent = []
     y = []
-    for entry in jsonFile:
-        data = json.loads(entry)
-        tag = data["category"]
+    for entry in csvReader:
+        tag = entry[1]
         #create a list tags in parallel with finalcontent, so that the tag of each doc is associated with it by index
-        description = data['short_description']
-        title = data['headline']
-        content = (description+' '+title).lower()
-        content = clean_text(content)
-        content = [i for i in content if i not in stop]
-        content = remove_websites(content)
-        if not (len(content) == 0):
-            y.append(tag)
-            finalContent.append(content)
+        if not tag == 'Category':
+            description = entry[2]
+            title = entry[3]
+            content = (description+' '+title).lower()
+            content = clean_text(content)
+            content = [i for i in content if i not in stop]
+            content = remove_websites(content)
+            if not (len(content) == 0):
+                y.append(tag)
+                finalContent.append(content)
 df = pd.DataFrame()
 docs = []
-
-
 for i in finalContent:
     docs.append(str(i))
+
 X = cv.fit_transform(docs)
 
-
-X_train, X_test, y_train, y_test = train_test_split(X,y, test_size=0.25,random_state=24,shuffle=True)
-model = MultinomialNB().fit(X_train,y_train)
+X_train, X_test, y_train, y_test = train_test_split(X,y, test_size=0.25,random_state=2,shuffle=True)
+model = BernoulliNB().fit(X_train,y_train)
 print(model.score(X_test,y_test))
