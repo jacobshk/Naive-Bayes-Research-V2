@@ -1,13 +1,14 @@
 import json
 import unicodedata
+
 import pandas as pd
-from sklearn.model_selection import train_test_split
-from sklearn.feature_extraction.text import CountVectorizer
-from sklearn.naive_bayes import MultinomialNB
-from stopwordsiso import stopwords
 import pynlpir
 #flashtext = module with flashtext algorithm that performs string search/replacement faster than native python string functions
 from flashtext import KeywordProcessor
+from sklearn.feature_extraction.text import CountVectorizer
+from sklearn.model_selection import train_test_split
+from sklearn.naive_bayes import MultinomialNB, BernoulliNB
+from stopwordsiso import stopwords
 
 #this dictionary functions as a blacklist for the original string: the other blacklist is necessary as it as used when parsing through each individual string in the created list of strings
 keywordDictionary = {
@@ -39,7 +40,7 @@ def clean_text(content):
     return cleanContent
 
 cv = CountVectorizer(lowercase = False)
-with open('Datasets/Chinese datasets/news/dev.json','r',encoding='utf-8') as jsonFile:
+with open('Datasets/Chinese datasets/long text/dev.json','r',encoding='utf-8') as jsonFile:
     
     finalContent = []
     y = []
@@ -63,6 +64,23 @@ for i in finalContent:
     docs.append(str(i))
 X = cv.fit_transform(docs)
 
-X_train, X_test, y_train, y_test = train_test_split(X,y, test_size=0.25,random_state=24,shuffle=True)
-model = MultinomialNB().fit(X_train,y_train)
-print(model.score(X_test,y_test))
+X_train, X_test, y_train, y_test = train_test_split(X,y, test_size=0.25,random_state=1,shuffle=True)
+multimodel = MultinomialNB().fit(X_train,y_train)
+bernmodel = BernoulliNB().fit(X_train,y_train)
+
+print("Seed 1 Multinomial: ",multimodel.score(X_test,y_test))
+print("Seed 1 Bernoulli: ",bernmodel.score(X_test,y_test))
+
+X_train, X_test, y_train, y_test = train_test_split(X,y, test_size=0.25,random_state=20,shuffle=True)
+multimodel = MultinomialNB().fit(X_train,y_train)
+bernmodel = BernoulliNB().fit(X_train,y_train)
+
+print("Seed 20 Multinomial: ",multimodel.score(X_test,y_test))
+print("Seed 20 Bernoulli: ",bernmodel.score(X_test,y_test))
+
+X_train, X_test, y_train, y_test = train_test_split(X,y, test_size=0.25,random_state=42,shuffle=True)
+multimodel = MultinomialNB().fit(X_train,y_train)
+bernmodel = BernoulliNB().fit(X_train,y_train)
+
+print("Seed 42 Multinomial: ",multimodel.score(X_test,y_test))
+print("Seed 42 Bernoulli: ",bernmodel.score(X_test,y_test))

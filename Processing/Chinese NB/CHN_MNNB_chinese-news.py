@@ -3,7 +3,7 @@ import unicodedata
 import pandas as pd
 from sklearn.model_selection import train_test_split
 from sklearn.feature_extraction.text import CountVectorizer
-from sklearn.naive_bayes import MultinomialNB
+from sklearn.naive_bayes import BernoulliNB, MultinomialNB
 from stopwordsiso import stopwords
 import pynlpir
 #flashtext = module with flashtext algorithm that performs string search/replacement faster than native python string functions
@@ -64,6 +64,23 @@ for i in finalContent:
     docs.append(str(i))
 X = cv.fit_transform(docs)
 
-X_train, X_test, y_train, y_test = train_test_split(X,y, test_size=0.25,random_state=24,shuffle=True)
-model = MultinomialNB().fit(X_train,y_train)
-print(model.score(X_test,y_test))
+X_train, X_test, y_train, y_test = train_test_split(X,y, test_size=0.25,random_state=1,shuffle=True)
+multimodel = MultinomialNB().fit(X_train,y_train)
+bernmodel = BernoulliNB().fit(X_train,y_train)
+
+print("Seed 1 Multinomial: ",multimodel.score(X_test,y_test))
+print("Seed 1 Bernoulli: ",bernmodel.score(X_test,y_test))
+
+X_train, X_test, y_train, y_test = train_test_split(X,y, test_size=0.25,random_state=20,shuffle=True)
+multimodel = MultinomialNB().fit(X_train,y_train)
+bernmodel = BernoulliNB().fit(X_train,y_train)
+
+print("Seed 20 Multinomial: ",multimodel.score(X_test,y_test))
+print("Seed 20 Bernoulli: ",bernmodel.score(X_test,y_test))
+
+X_train, X_test, y_train, y_test = train_test_split(X,y, test_size=0.25,random_state=42,shuffle=True)
+multimodel = MultinomialNB().fit(X_train,y_train)
+bernmodel = BernoulliNB().fit(X_train,y_train)
+
+print("Seed 42 Multinomial: ",multimodel.score(X_test,y_test))
+print("Seed 42 Bernoulli: ",bernmodel.score(X_test,y_test))
