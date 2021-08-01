@@ -63,6 +63,8 @@ for i in finalContent:
     docs.append(str(i))
 X = cv.fit_transform(docs)
 
+
+
 X_train, X_test, y_train, y_test = train_test_split(X,y, test_size=0.25,random_state=1,shuffle=True)
 multimodel = MultinomialNB().fit(X_train,y_train)
 bernmodel = BernoulliNB().fit(X_train,y_train)
